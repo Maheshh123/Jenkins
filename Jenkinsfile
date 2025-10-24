@@ -1,35 +1,39 @@
 pipeline {
-    agent any  // Run on any available Jenkins agent
+  agent any
+  tools { 
+    jdk 'jdk-21'      // must match your Tools name
+    maven 'maven-3'   // must match your Tools name
+  }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                // Pull code from GitHub
-                git url: 'https://github.com/Maheshh123/Jenkins.git', branch: 'main'
-            }
-        }
+  stages {
+    stage('Checkout') { steps { checkout scm } }
 
-        stage('Build with Maven') {
-            steps {
-                // Run Maven build command
-                sh 'mvn clean package'
-            }
-        }
-
-        stage('Archive Artifacts') {
-            steps {
-                // Save JAR/WAR files from target folder
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            }
-        }
+    stage('Env Check') {
+      steps {
+        bat 'java -version'
+        bat 'mvn -version'
+      }
     }
 
-    post {
-        success {
-            echo 'Build and Archive Successful!'
-        }
-        failure {
-            echo 'Build Failed!'
-        }
+    stage('Build') {
+      steps {
+        bat 'mvn -B -e clean package'
+      }
     }
+
+    stage('Test') {
+      steps {
+        bat 'mvn -B -e test'
+      }
+    }
+
+    stage('Archive') {
+      steps {
+        junit allowEmptyResults: true, testResults: '*/surefire-reports/.xml'
+        archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+      }
+    }
+  }
+
+  post { always { echo 'Build finished. Check artifacts & test reports.' } }
 }
