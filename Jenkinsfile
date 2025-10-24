@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // Pull code from GitHub
-                git url: 'https://github.com/your-repo/project.git', branch: 'main'
+                git url: 'https://github.com/Maheshh123/Jenkins.git', branch: 'main'
             }
         }
 
